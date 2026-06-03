@@ -8,6 +8,7 @@ import (
 
 	configv1 "github.com/openshift/api/config/v1"
 	"github.com/openshift/cluster-autoscaler-operator/pkg/apis"
+	"github.com/openshift/library-go/pkg/operator/configobserver/featuregates"
 	autoscalingv1 "github.com/openshift/cluster-autoscaler-operator/pkg/apis/autoscaling/v1"
 	"github.com/openshift/cluster-autoscaler-operator/pkg/util"
 	"github.com/openshift/cluster-autoscaler-operator/test/helpers"
@@ -141,6 +142,7 @@ func TestAutoscalerArgsFromSpec(t *testing.T) {
 	testCases := []struct {
 		name            string
 		caFunc          func() *autoscalingv1.ClusterAutoscaler
+		config          *Config
 		expected        []string
 		expectedMissing []string
 	}{
@@ -272,12 +274,48 @@ func TestAutoscalerArgsFromSpec(t *testing.T) {
 				"--cordon-node-before-terminating=false",
 			},
 		},
+		{
+			name:   "CapacityBuffer enabled",
+			caFunc: NewClusterAutoscaler,
+			config: &Config{
+				CloudProvider: TestCloudProvider,
+				Namespace:     TestNamespace,
+				FeatureGateAccessor: featuregates.NewHardcodedFeatureGateAccess(
+					[]configv1.FeatureGateName{configv1.FeatureGateName(capacityBufferFGName)},
+					[]configv1.FeatureGateName{},
+				),
+			},
+			expected: []string{
+				"--capacity-buffer-controller-enabled=true",
+				"--capacity-buffer-pod-injection-enabled=true",
+			},
+		},
+		{
+			name:   "CapacityBuffer disabled",
+			caFunc: NewClusterAutoscaler,
+			config: &Config{
+				CloudProvider: TestCloudProvider,
+				Namespace:     TestNamespace,
+				FeatureGateAccessor: featuregates.NewHardcodedFeatureGateAccess(
+					[]configv1.FeatureGateName{},
+					[]configv1.FeatureGateName{configv1.FeatureGateName(capacityBufferFGName)},
+				),
+			},
+			expectedMissing: []string{
+				"--capacity-buffer-controller-enabled",
+				"--capacity-buffer-pod-injection-enabled",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(tt *testing.T) {
 			ca := tc.caFunc()
-			args := AutoscalerArgs(ca, &Config{CloudProvider: TestCloudProvider, Namespace: TestNamespace})
+			cfg := &Config{CloudProvider: TestCloudProvider, Namespace: TestNamespace}
+			if tc.config != nil {
+				cfg = tc.config
+			}
+			args := AutoscalerArgs(ca, cfg)
 
 			for _, e := range tc.expected {
 				if !includeString(args, e) {

@@ -26,6 +26,9 @@ const (
 	// ProvisioningRequest FeatureGate name
 	provisioningRequestFGName = "ProvisioningRequestAvailable"
 
+	// CapacityBuffer FeatureGate name
+	capacityBufferFGName = "CapacityBufferAvailable"
+
 	// API Content-Type for autoscaler Kubernetes clients
 	autoscalerAPIContentType = "application/json"
 )
@@ -89,6 +92,8 @@ const (
 	ExpanderArg                      AutoscalerArg = "--expander"
 	MaxBulkSoftTaintCountArg         AutoscalerArg = "--max-bulk-soft-taint-count"
 	EnableProvisioningRequestsArg    AutoscalerArg = "--enable-provisioning-requests"
+	EnableCapacityBufferControllerArg   AutoscalerArg = "--capacity-buffer-controller-enabled"
+	EnableCapacityBufferPodInjectionArg AutoscalerArg = "--capacity-buffer-pod-injection-enabled"
 	KubeAPIContentType               AutoscalerArg = "--kube-api-content-type"
 )
 
@@ -234,7 +239,14 @@ func AutoscalerArgs(ca *v1.ClusterAutoscaler, cfg *Config) []string {
 					args = append(args, EnableProvisioningRequestsArg.Value(trueFlag))
 				}
 			} else {
-				klog.Info("ProvisioingRequest feature gate not found.")
+				klog.Info("ProvisioningRequest feature gate not found.")
+			}
+			if slices.Contains(featureGates.KnownFeatures(), capacityBufferFGName) {
+				if featureGates.Enabled(capacityBufferFGName) {
+					args = append(args, EnableCapacityBufferControllerArg.Value(trueFlag), EnableCapacityBufferPodInjectionArg.Value(trueFlag))
+				}
+			} else {
+				klog.Info("CapacityBuffer feature gate not found.")
 			}
 		}
 	}
