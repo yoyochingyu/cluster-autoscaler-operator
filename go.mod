@@ -5,7 +5,7 @@ go 1.25.0
 // the following replace is using a manually constructed pseudo-version number
 // to ensure that we do not pull in kubernetes dependencies from the autoscaler.
 // see https://go.dev/doc/modules/version-numbers for more information about how to generate these numbers.
-replace k8s.io/autoscaler/cluster-autoscaler/apis => k8s.io/autoscaler/cluster-autoscaler/apis v0.0.0-20250124163921-a221e41f4be0
+replace k8s.io/autoscaler/cluster-autoscaler/apis => k8s.io/autoscaler/cluster-autoscaler/apis v0.0.0-20260205183032-25fc5c74f6b0
 
 require (
 	github.com/blang/semver/v4 v4.0.0
@@ -19,7 +19,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	k8s.io/api v0.35.2
 	k8s.io/apimachinery v0.35.2
-	k8s.io/autoscaler/cluster-autoscaler/apis v0.0.0-00010101000000-000000000000
+	k8s.io/autoscaler/cluster-autoscaler/apis v0.0.0-20260205183032-25fc5c74f6b0
 	k8s.io/client-go v0.35.2
 	k8s.io/klog/v2 v2.130.1
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2
